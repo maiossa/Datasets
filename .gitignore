@@ -51,6 +51,13 @@ Thumbs.db
 # *.xlsx
 # *.json
 
+# Internal planning documents (don't track these)
+Plan.md
+
+# Documentation files (track these)
+!README.md
+!Presentation.md
+
 # Temporary files
 *.tmp
 *.temp

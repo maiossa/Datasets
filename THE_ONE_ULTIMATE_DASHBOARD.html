@@ -451,24 +451,15 @@
                 document.getElementById('yearSelect').value = currentYear;
                 document.getElementById('yearDisplay').textContent = currentYear;
                 updateDashboard();
-            });            // Hauptfunktion für Dashboard-Update
+            });
+
+            // Hauptfunktion für Dashboard-Update
             function updateDashboard() {
-                console.log('Updating dashboard for year:', currentYear, 'metric:', currentMetric);
-                console.log('Available years:', Object.keys(dashboardData));
-                
                 const yearData = dashboardData[currentYear.toString()] || {};
-                console.log('Year data for', currentYear, ':', yearData);
-                
                 const metricData = yearData[currentMetric] || {};
-                console.log('Metric data for', currentMetric, ':', Object.keys(metricData).length, 'entries');
-                
+
                 const locations = Object.keys(metricData);
                 const values = Object.values(metricData);
-                
-                if (locations.length === 0) {
-                    console.warn('No data available for year', currentYear, 'and metric', currentMetric);
-                    return;
-                }
 
                 // Choropleth-Karte
                 const trace = {
@@ -511,27 +502,14 @@
 
             // Statistiken aktualisieren
             function updateStats(values) {
-                const validValues = values.filter(v => v > 0 && !isNaN(v));
+                const validValues = values.filter(v => v > 0);
                 const totalDistricts = validValues.length;
-                const avgValue = validValues.length > 0 ? validValues.reduce((a, b) => a + b, 0) / validValues.length : 0;
-                const maxValue = validValues.length > 0 ? Math.max(...validValues) : 0;
-                
-                // Berechne Gesamtangebote sicher
-                let totalOffers = 0;
-                try {
-                    if (currentMetric === 'price_count') {
-                        totalOffers = validValues.reduce((a, b) => a + b, 0);
-                    } else {
-                        const yearData = dashboardData[currentYear.toString()];
-                        if (yearData && yearData['price_count']) {
-                            const offerValues = Object.values(yearData['price_count']).filter(v => v > 0 && !isNaN(v));
-                            totalOffers = offerValues.reduce((a, b) => a + b, 0);
-                        }
-                    }
-                } catch (error) {
-                    console.log('Error calculating totalOffers:', error);
-                    totalOffers = 0;
-                }
+                const avgValue = validValues.reduce((a, b) => a + b, 0) / validValues.length;
+                const maxValue = Math.max(...validValues);
+                const totalOffers = currentMetric === 'price_count' ? 
+                                   validValues.reduce((a, b) => a + b, 0) : 
+                                   dashboardData[currentYear.toString()]['price_count'] ? 
+                                   Object.values(dashboardData[currentYear.toString()]['price_count']).reduce((a, b) => a + b, 0) : 0;
 
                 document.getElementById('totalDistricts').textContent = totalDistricts;
                 document.getElementById('avgPrice').textContent = avgValue.toFixed(0) + (metricsConfig[currentMetric].unit || '');

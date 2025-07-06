@@ -27,7 +27,7 @@ from pathlib import Path
 
 # Konfiguration
 OUTPUT_FILE = 'interactive_price_heatmap_berlin.html'
-DATA_PATH = 'data/processed/berlin_housing_combined_final.csv'
+DATA_PATH = 'data/processed/berlin_housing_combined_enriched_final.csv'
 SAMPLE_SIZE = 1000  # Max Punkte pro Jahr für Performance
 DEBUG_COORDS = False  # Setze auf True für Debug-Output der Koordinaten
 
@@ -85,8 +85,8 @@ def load_data():
             print("  Verzeichnis data/processed/ nicht gefunden")
         return None
     
-    # Lade Daten
-    df = pd.read_csv(DATA_PATH)
+    # Lade Daten mit korrekten PLZ-Typ
+    df = pd.read_csv(DATA_PATH, dtype={'plz': 'string'})
     print(f"Daten geladen: {len(df):,} Zeilen")
     
     # Prüfe erforderliche Spalten
@@ -107,6 +107,17 @@ def load_data():
     print(f"✅ Daten bereinigt: {len(df):,} Zeilen")
     print(f"   • Zeitraum: {df['year'].min()} - {df['year'].max()}")
     print(f"   • Bezirke: {df['district'].nunique()}")
+    
+    # Check PLZ and coordinate coverage
+    if 'plz' in df.columns:
+        plz_count = df['plz'].count()
+        plz_pct = (plz_count / len(df)) * 100
+        print(f"   • PLZ-Abdeckung: {plz_count:,}/{len(df):,} ({plz_pct:.1f}%)")
+    
+    if 'lat' in df.columns and 'lon' in df.columns:
+        coords_count = df[['lat', 'lon']].dropna().shape[0]
+        coords_pct = (coords_count / len(df)) * 100
+        print(f"   • Koordinaten-Abdeckung: {coords_count:,}/{len(df):,} ({coords_pct:.1f}%)")
     
     # Debug: Zeige alle eindeutigen Bezirke
     unique_districts = sorted(df['district'].unique())
@@ -153,12 +164,23 @@ def calculate_price_categories(df):
     
     return df, price_quantiles
 
-def get_coordinates(district):
-    """Simuliere Koordinaten basierend auf Bezirk mit Debug-Info."""
+def get_coordinates(row):
+    """Verwende echte Koordinaten aus dem Dataset oder fallback zu simulierten Koordinaten."""
+    # Prüfe ob echte Koordinaten verfügbar sind
+    if 'lat' in row and 'lon' in row and pd.notna(row['lat']) and pd.notna(row['lon']):
+        lat, lon = row['lat'], row['lon']
+        if DEBUG_COORDS:
+            district = row.get('district', 'N/A')
+            plz = row.get('plz', 'N/A')
+            print(f"    DEBUG: Echte Koordinaten für '{district}' (PLZ: {plz}): {lat}, {lon}")
+        return lat, lon
+    
+    # Fallback zu simulierten Koordinaten basierend auf Bezirk
+    district = row.get('district', 'Unknown')
     if district in DISTRICT_COORDS:
         base_lat, base_lon = DISTRICT_COORDS[district]
         if DEBUG_COORDS:
-            print(f"    DEBUG: Bezirk '{district}' -> Koordinaten gefunden: {base_lat}, {base_lon}")
+            print(f"    DEBUG: Simulierte Koordinaten für '{district}': {base_lat}, {base_lon}")
     else:
         base_lat, base_lon = 52.52, 13.405  # Standard Berlin-Koordinaten
         if DEBUG_COORDS:
@@ -180,7 +202,7 @@ def get_marker_size(size):
         return 10
 
 def create_tooltip(row):
-    """Erstelle detaillierte Tooltip-Informationen mit Debug-Info."""
+    """Erstelle detaillierte Tooltip-Informationen mit PLZ- und Ortsdaten."""
     # Erstelle eindeutige ID (Index verwenden)
     unique_id = f"ID_{row.name}" if hasattr(row, 'name') else f"ID_{hash(str(row))}"
     
@@ -188,15 +210,36 @@ def create_tooltip(row):
     <b>{row['price']:.0f}€</b> | {row['size']:.0f}m² | {row['price_per_sqm']:.1f}€/m²<br>
     <b>Kategorie:</b> {row['price_category']}<br>
     <b>Bezirk:</b> {row['district']}<br>
-    <b>Jahr:</b> {row['year']}<br>
-    <b>Debug-ID:</b> {unique_id}<br>
-    <b>Dataset:</b> {row.get('dataset_id', 'N/A')}<br>
-    <b>Quelle:</b> {row.get('source', 'N/A')}<br>
     """
+    
+    # Füge PLZ hinzu falls verfügbar
+    if 'plz' in row and pd.notna(row['plz']):
+        tooltip_text += f"<b>PLZ:</b> {row['plz']}<br>"
+    
+    # Füge Ortsteil hinzu falls verfügbar
+    if 'ortsteil' in row and pd.notna(row['ortsteil']):
+        tooltip_text += f"<b>Ortsteil:</b> {row['ortsteil']}<br>"
+    
+    # Füge Wohnlage hinzu falls verfügbar
+    if 'wol' in row and pd.notna(row['wol']):
+        tooltip_text += f"<b>Wohnlage:</b> {row['wol']}<br>"
+    
+    tooltip_text += f"<b>Jahr:</b> {row['year']}<br>"
     
     # Füge Zimmeranzahl hinzu falls verfügbar
     if 'rooms' in row and pd.notna(row['rooms']):
         tooltip_text += f"<b>Zimmer:</b> {row['rooms']}<br>"
+    
+    # Füge Koordinaten-Info hinzu
+    if 'lat' in row and 'lon' in row and pd.notna(row['lat']) and pd.notna(row['lon']):
+        tooltip_text += f"<b>Koordinaten:</b> {row['lat']:.3f}, {row['lon']:.3f}<br>"
+    
+    # Debug-Informationen
+    tooltip_text += f"<b>Debug-ID:</b> {unique_id}<br>"
+    tooltip_text += f"<b>Dataset:</b> {row.get('dataset_id', 'N/A')}<br>"
+    tooltip_text += f"<b>Quelle:</b> {row.get('source', 'N/A')}<br>"
+    
+    return tooltip_text
     
     return tooltip_text
 
@@ -279,8 +322,8 @@ def create_interactive_map(df, price_quantiles):
         
         # Füge Marker für jede Immobilie hinzu
         for idx, row in year_data_sample.iterrows():
-            # Simuliere Koordinaten
-            lat, lon = get_coordinates(row['district'])
+            # Verwende echte oder simulierte Koordinaten
+            lat, lon = get_coordinates(row)
             
             # Bestimme Marker-Größe
             radius = get_marker_size(row['size'])

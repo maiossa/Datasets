@@ -29,19 +29,44 @@ from pathlib import Path
 OUTPUT_FILE = 'interactive_price_heatmap_berlin.html'
 DATA_PATH = 'data/processed/berlin_housing_combined_final.csv'
 SAMPLE_SIZE = 1000  # Max Punkte pro Jahr für Performance
+DEBUG_COORDS = False  # Setze auf True für Debug-Output der Koordinaten
 
-# Bezirk-Koordinaten für Simulation (da keine echten Koordinaten verfügbar)
+# Bezirk-Koordinaten für Simulation (komplette Berliner Bezirke)
 DISTRICT_COORDS = {
+    # Offizielle Berliner Bezirke
     'Mitte': [52.520, 13.405],
-    'Friedrichshain': [52.515, 13.455],
-    'Charlottenburg': [52.520, 13.295],
+    'Friedrichshain-Kreuzberg': [52.515, 13.455],
+    'Charlottenburg-Wilmersdorf': [52.520, 13.295],
     'Pankow': [52.565, 13.405],
-    'Neukoelln': [52.475, 13.435],
-    'Schoeneberg': [52.485, 13.365],
+    'Neukölln': [52.475, 13.435],
+    'Tempelhof-Schöneberg': [52.485, 13.365],
     'Reinickendorf': [52.585, 13.335],
+    'Steglitz-Zehlendorf': [52.435, 13.255],
+    'Marzahn-Hellersdorf': [52.535, 13.595],
+    'Spandau': [52.535, 13.195],
+    'Lichtenberg': [52.545, 13.485],
+    'Treptow-Köpenick': [52.455, 13.575],
+    
+    # Alte/alternative Schreibweisen
+    'Friedrichshain': [52.515, 13.455],
+    'Kreuzberg': [52.500, 13.420],
+    'Charlottenburg': [52.520, 13.295],
+    'Wilmersdorf': [52.495, 13.315],
+    'Schöneberg': [52.485, 13.365],
+    'Tempelhof': [52.465, 13.385],
     'Zehlendorf': [52.435, 13.255],
+    'Steglitz': [52.455, 13.315],
     'Hellersdorf': [52.535, 13.595],
-    'Spandau': [52.535, 13.195]
+    'Marzahn': [52.545, 13.545],
+    'Köpenick': [52.455, 13.575],
+    'Treptow': [52.485, 13.515],
+    
+    # Häufige Varianten
+    'Neukoelln': [52.475, 13.435],
+    'Tempelhof-Schoeneberg': [52.485, 13.365],
+    'Steglitz-Zehlendorf': [52.435, 13.255],
+    'Marzahn-Hellersdorf': [52.535, 13.595],
+    'Treptow-Koepenick': [52.455, 13.575],
 }
 
 def load_data():
@@ -79,9 +104,18 @@ def load_data():
     # Entferne Zeilen mit fehlenden Werten
     df = df.dropna(subset=['price', 'size', 'district'])
     
-    print(f"Daten bereinigt: {len(df):,} Zeilen")
-    print(f"  Zeitraum: {df['year'].min()} - {df['year'].max()}")
-    print(f"  Bezirke: {df['district'].nunique()}")
+    print(f"✅ Daten bereinigt: {len(df):,} Zeilen")
+    print(f"   • Zeitraum: {df['year'].min()} - {df['year'].max()}")
+    print(f"   • Bezirke: {df['district'].nunique()}")
+    
+    # Debug: Zeige alle eindeutigen Bezirke
+    unique_districts = sorted(df['district'].unique())
+    print(f"   • Eindeutige Bezirke in Daten: {unique_districts[:10]}...")  # Zeige erste 10
+    
+    # Debug: Zeige welche Bezirke NICHT in DISTRICT_COORDS sind
+    missing_coords = [d for d in unique_districts if d not in DISTRICT_COORDS]
+    if missing_coords:
+        print(f"   • Bezirke OHNE Koordinaten: {missing_coords[:10]}...")  # Zeige erste 10
     
     return df
 
@@ -120,11 +154,15 @@ def calculate_price_categories(df):
     return df, price_quantiles
 
 def get_coordinates(district):
-    """Simuliere Koordinaten basierend auf Bezirk."""
+    """Simuliere Koordinaten basierend auf Bezirk mit Debug-Info."""
     if district in DISTRICT_COORDS:
         base_lat, base_lon = DISTRICT_COORDS[district]
+        if DEBUG_COORDS:
+            print(f"    DEBUG: Bezirk '{district}' -> Koordinaten gefunden: {base_lat}, {base_lon}")
     else:
         base_lat, base_lon = 52.52, 13.405  # Standard Berlin-Koordinaten
+        if DEBUG_COORDS:
+            print(f"    DEBUG: Bezirk '{district}' -> NICHT in DISTRICT_COORDS! Verwende Standard-Koordinaten.")
     
     # Füge zufällige Variation hinzu für Streuung
     lat = base_lat + random.uniform(-0.02, 0.02)
@@ -142,12 +180,18 @@ def get_marker_size(size):
         return 10
 
 def create_tooltip(row):
-    """Erstelle detaillierte Tooltip-Informationen."""
+    """Erstelle detaillierte Tooltip-Informationen mit Debug-Info."""
+    # Erstelle eindeutige ID (Index verwenden)
+    unique_id = f"ID_{row.name}" if hasattr(row, 'name') else f"ID_{hash(str(row))}"
+    
     tooltip_text = f"""
     <b>{row['price']:.0f}€</b> | {row['size']:.0f}m² | {row['price_per_sqm']:.1f}€/m²<br>
     <b>Kategorie:</b> {row['price_category']}<br>
     <b>Bezirk:</b> {row['district']}<br>
     <b>Jahr:</b> {row['year']}<br>
+    <b>Debug-ID:</b> {unique_id}<br>
+    <b>Dataset:</b> {row.get('dataset_id', 'N/A')}<br>
+    <b>Quelle:</b> {row.get('source', 'N/A')}<br>
     """
     
     # Füge Zimmeranzahl hinzu falls verfügbar

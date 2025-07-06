@@ -1,0 +1,254 @@
+  12987 12623,Mahlsdorf,Marzahn-Hellersdorf
+   8937 12683,Biesdorf,Marzahn-Hellersdorf
+   7648 14089,Kladow,Spandau
+   7648 14089,Gatow,Spandau
+   7421 12621,Kaulsdorf,Marzahn-Hellersdorf
+   6830 12524,Altglienicke,Treptow-Köpenick
+   6784 13125,Karow,Pankow
+   6784 13125,Französisch Buchholz,Pankow
+   6784 13125,Buch,Pankow
+   6783 12355,Rudow,Neukölln
+   6581 13591,Staaken,Spandau
+   6581 13591,Spandau,Spandau
+   6377 13503,Tegel,Reinickendorf
+   6377 13503,Heiligensee,Reinickendorf
+   6099 13127,Französisch Buchholz,Pankow
+   5558 13158,Wilhelmsruh,Pankow
+   5558 13158,Rosenthal,Pankow
+   5511 13465,Frohnau,Reinickendorf
+   4857 13467,Hermsdorf,Reinickendorf
+   4794 10318,Karlshorst,Lichtenberg
+   4750 12526,Bohnsdorf,Treptow-Köpenick
+   4728 12589,Rahnsdorf,Treptow-Köpenick
+   4678 12555,Oberschöneweide,Treptow-Köpenick
+   4678 12555,Köpenick,Treptow-Köpenick
+   4678 12555,Friedrichshagen,Treptow-Köpenick
+   4596 12305,Lichtenrade,Tempelhof-Schöneberg
+   4571 12559,Müggelheim,Treptow-Köpenick
+   4571 12559,Köpenick,Treptow-Köpenick
+   4403 13156,Niederschönhausen,Pankow
+   4208 12357,Gropiusstadt,Neukölln
+   4039 12557,Köpenick,Treptow-Köpenick
+   4015 13129,Blankenburg,Pankow
+   3909 14167,Zehlendorf,Steglitz-Zehlendorf
+   3909 14167,Lichtenrade,Tempelhof-Schöneberg
+   3875 12349,Buckow,Neukölln
+   3679 14163,Zehlendorf,Steglitz-Zehlendorf
+   3676 12353,Gropiusstadt,Neukölln
+   3670 12107,Mariendorf,Tempelhof-Schöneberg
+   3666 14195,Schmargendorf,Charlottenburg-Wilmersdorf
+   3666 14195,Dahlem,Steglitz-Zehlendorf
+   3619 13469,Lübars,Reinickendorf
+   3539 12249,Lankwitz,Steglitz-Zehlendorf
+   3510 12527,Schmöckwitz,Treptow-Köpenick
+   3510 12527,Grünau,Treptow-Köpenick
+   3489 12307,Marienfelde,Tempelhof-Schöneberg
+   3489 12307,Lichtenrade,Tempelhof-Schöneberg
+   3343 12209,Lichterfelde,Steglitz-Zehlendorf
+   3333 14129,Zehlendorf,Steglitz-Zehlendorf
+   3308 13053,Neu-Hohenschönhausen,Lichtenberg
+   3298 13509,Wittenau,Reinickendorf
+   3298 13509,Tegel,Reinickendorf
+   3294 14169,Zehlendorf,Steglitz-Zehlendorf
+   3294 14169,Dahlem,Steglitz-Zehlendorf
+   3212 12487,Johannisthal,Treptow-Köpenick
+   3209 12277,Marienfelde,Tempelhof-Schöneberg
+   3209 12277,Mariendorf,Tempelhof-Schöneberg
+   3130 13587,Hakenfelde,Spandau
+   3050 14109,Wannsee,Steglitz-Zehlendorf
+   3020 12309,Lichtenrade,Tempelhof-Schöneberg
+   3013 13088,Heinersdorf,Pankow
+   2917 12587,Friedrichshagen,Treptow-Köpenick
+   2914 12207,Lichterfelde,Steglitz-Zehlendorf
+   2905 12489,Johannisthal,Treptow-Köpenick
+   2905 12489,Adlershof,Treptow-Köpenick
+   2883 14193,Wannsee,Steglitz-Zehlendorf
+   2883 14193,Grunewald,Charlottenburg-Wilmersdorf
+   2881 12205,Lichterfelde,Steglitz-Zehlendorf
+   2868 14165,Zehlendorf,Steglitz-Zehlendorf
+   2864 13437,Wittenau,Reinickendorf
+   2860 13086,Weissensee,Pankow
+   2835 12247,Steglitz,Steglitz-Zehlendorf
+   2835 12247,Lankwitz,Steglitz-Zehlendorf
+   2807 13507,Tegel,Reinickendorf
+   2762 12359,Britz,Neukölln
+   2751 12437,Plänterwald,Treptow-Köpenick
+   2751 12437,Niederschöneweide,Treptow-Köpenick
+   2751 12437,Baumschulenweg,Treptow-Köpenick
+   2634 13589,Hakenfelde,Spandau
+   2634 13589,Falkenhagener Feld,Spandau
+   2616 13403,Wittenau,Reinickendorf
+   2616 13403,Reinickendorf,Reinickendorf
+   2599 12351,Britz,Neukölln
+   2474 13089,Pankow,Pankow
+   2458 10179,Mitte,Mitte
+   2451 13595,Wilhelmstadt,Spandau
+   2451 13595,Staaken,Spandau
+   2379 13187,Pankow,Pankow
+   2379 13187,Niederschönhausen,Pankow
+   2324 13407,Reinickendorf,Reinickendorf
+   2292 12203,Lichterfelde,Steglitz-Zehlendorf
+   2221 13409,Reinickendorf,Reinickendorf
+   2198 13505,Tegel,Reinickendorf
+   2198 13505,Konradshöhe,Reinickendorf
+   2178 12105,Schöneberg,Tempelhof-Schöneberg
+   2178 12105,Mariendorf,Tempelhof-Schöneberg
+   2176 14055,Grunewald,Charlottenburg-Wilmersdorf
+   2176 14055,Charlottenburg,Charlottenburg-Wilmersdorf
+   2153 12347,Britz,Neukölln
+   2140 10965,Neukölln,Neukölln
+   2113 13593,Wilhelmstadt,Spandau
+   2113 13593,Staaken,Spandau
+   2113 13059,Wartenberg,Lichtenberg
+   2099 13599,Siemensstadt,Spandau
+   2099 13599,Haselhorst,Spandau
+   2076 12627,Hellersdorf,Marzahn-Hellersdorf
+   2032 13583,Falkenhagener Feld,Spandau
+   2027 13055,Alt-Hohenschönhausen,Lichtenberg
+   2004 12459,Oberschöneweide,Treptow-Köpenick
+   2003 10317,Rummelsburg,Lichtenberg
+   1966 10117,Mitte,Mitte
+   1961 10365,Lichtenberg,Lichtenberg
+   1961 10365,Fennpfuhl,Lichtenberg
+   1927 12101,Tempelhof,Tempelhof-Schöneberg
+   1893 13581,Staaken,Spandau
+   1893 13581,Spandau,Spandau
+   1878 13189,Pankow,Pankow
+   1838 12353,Buckow,Neukölln
+   1833 10247,Friedrichshain,Friedrichshain-Kreuzberg
+   1815 12109,Mariendorf,Tempelhof-Schöneberg
+   1708 12685,Marzahn,Marzahn-Hellersdorf
+   1666 10315,Friedrichsfelde,Lichtenberg
+   1637 10245,Friedrichshain,Friedrichshain-Kreuzberg
+   1621 12681,Marzahn,Marzahn-Hellersdorf
+   1592 14199,Schmargendorf,Charlottenburg-Wilmersdorf
+   1583 13057,Falkenberg,Lichtenberg
+   1576 12099,Tempelhof,Tempelhof-Schöneberg
+   1523 10115,Mitte,Mitte
+   1521 13159,Blankenfelde,Pankow
+   1521 12103,Tempelhof,Tempelhof-Schöneberg
+   1521 12103,Schöneberg,Tempelhof-Schöneberg
+   1474 10407,Prenzlauer Berg,Pankow 
+   1463 12619,Hellersdorf,Marzahn-Hellersdorf
+   1452 13585,Spandau,Spandau
+   1452 13585,Hakenfelde,Spandau
+   1416 12169,Steglitz,Steglitz-Zehlendorf
+   1370 12439,Niederschöneweide,Treptow-Köpenick
+   1350 12167,Steglitz,Steglitz-Zehlendorf
+   1340 14197,Wilmersdorf,Charlottenburg-Wilmersdorf
+   1317 12163,Steglitz,Steglitz-Zehlendorf
+   1307 13629,Siemensstadt,Spandau
+   1307 13629,Haselhorst,Spandau
+   1307 13629,Charlottenburg,Charlottenburg-Wilmersdorf
+   1251 14052,Westend,Charlottenburg-Wilmersdorf
+   1251 14052,Spandau,Spandau
+   1197 10439,Prenzlauer Berg,Pankow 
+   1191 10405,Prenzlauer Berg,Pankow 
+   1183 12435,Plänterwald,Treptow-Köpenick
+   1183 12435,Alt-Treptow,Treptow-Köpenick
+   1179 10243,Friedrichshain,Friedrichshain-Kreuzberg
+   1178 10409,Prenzlauer Berg,Pankow 
+   1178 10409,Mitte,Mitte
+   1176 10119,Mitte,Mitte
+   1160 13435,Märkisches Viertel,Reinickendorf
+   1151 10557,Tiergarten,Mitte
+   1151 10557,Moabit,Mitte
+   1151 10557,Hansaviertel,Mitte
+   1137 13051,Malchow,Lichtenberg
+   1119 14050,Westend,Charlottenburg-Wilmersdorf
+   1115 12051,Neukölln,Neukölln
+   1103 13597,Wilhelmstadt,Spandau
+   1103 13597,Westend,Charlottenburg-Wilmersdorf
+   1103 13597,Spandau,Spandau
+   1093 13627,Wilhelmstadt,Spandau
+   1093 13627,Westend,Charlottenburg-Wilmersdorf
+   1093 13627,Spandau,Spandau
+   1086 10437,Prenzlauer Berg,Pankow 
+   1081 10997,Kreuzberg,Friedrichshain-Kreuzberg
+   1072 12157,Steglitz,Steglitz-Zehlendorf
+   1072 12157,Schöneberg,Tempelhof-Schöneberg
+   1070 10965,Tempelhof,Tempelhof
+   1070 10965,Kreuzberg,Friedrichshain-Kreuzberg
+   1059 10249,Prenzlauer Berg,Pankow
+   1059 10249,Friedrichshain,Friedrichshain-Kreuzberg
+   1044 12279,Marienfelde,Tempelhof-Schöneberg
+   1031 10999,Kreuzberg,Friedrichshain-Kreuzberg
+   1030 10969,Kreuzberg,Friedrichshain-Kreuzberg
+   1029 12689,Marzahn,Marzahn-Hellersdorf
+   1014 14059,Charlottenburg,Charlottenburg-Wilmersdorf
+    998 12057,Neukölln,Neukölln
+    994 13347,Wedding,Mitte
+    994 13347,Gesundbrunnen,Mitte
+    992 13439,Märkisches Viertel,Reinickendorf
+    984 13359,Gesundbrunnen,Mitte
+    978 10319,Friedrichsfelde,Lichtenberg
+    976 13357,Gesundbrunnen,Mitte
+    933 12679,Marzahn,Marzahn-Hellersdorf
+    922 12159,Schöneberg,Tempelhof-Schöneberg
+    922 12159,Friedenau,Tempelhof-Schöneberg
+    909 13353,Wedding,Mitte
+    909 13353,Moabit,Mitte
+    904 12161,Friedenau,Tempelhof-Schöneberg
+    894 10829,Schöneberg,Tempelhof-Schöneberg
+    892 13351,Wedding,Mitte
+    880 10785,Tiergarten,Mitte
+    860 13355,Gesundbrunnen,Mitte
+    846 10961,Kreuzberg,Friedrichshain-Kreuzberg
+    819 12629,Hellersdorf,Marzahn-Hellersdorf
+    809 10367,Fennpfuhl,Lichtenberg
+    808 10435,Prenzlauer Berg,Pankow 
+    807 10589,Charlottenburg,Charlottenburg-Wilmersdorf
+    773 10715,Wilmersdorf,Charlottenburg-Wilmersdorf
+    765 13349,Wedding,Mitte
+    765 10967,Kreuzberg,Friedrichshain-Kreuzberg
+    752 10713,Halensee,Charlottenburg-Wilmersdorf
+    742 10178,Mitte,Mitte
+    732 12059,Neukölln,Neukölln
+    728 10585,Charlottenburg,Charlottenburg-Wilmersdorf
+    723 10587,Charlottenburg,Charlottenburg-Wilmersdorf
+    712 10551,Moabit,Mitte
+    704 13405,Tegel,Reinickendorf
+    697 12049,Neukölln,Neukölln
+    691 10709,Wilmersdorf,Charlottenburg-Wilmersdorf
+    691 10709,Halensee,Charlottenburg-Wilmersdorf
+    688 12053,Neukölln,Neukölln
+    670 10559,Moabit,Mitte
+    667 10555,Moabit,Mitte
+    665 12043,Neukölln,Neukölln
+    646 10717,Wilmersdorf,Charlottenburg-Wilmersdorf
+    631 10707,Wilmersdorf,Charlottenburg-Wilmersdorf
+    629 10963,Kreuzberg,Friedrichshain-Kreuzberg
+    628 10827,Schöneberg,Tempelhof-Schöneberg
+    618 10369,Lichtenberg,Lichtenberg
+    612 12055,Neukölln,Neukölln
+    611 10719,Wilmersdorf,Charlottenburg-Wilmersdorf
+    611 10719,Charlottenburg,Charlottenburg-Wilmersdorf
+    602 14057,Charlottenburg,Charlottenburg-Wilmersdorf
+    586 10711,Halensee,Charlottenburg-Wilmersdorf
+    586 10711,Grunewald,Charlottenburg-Wilmersdorf
+    581 10777,Wilmersdorf,Charlottenburg-Wilmersdorf
+    581 10777,Schöneberg,Tempelhof-Schöneberg
+    574 12047,Neukölln,Neukölln
+    569 12045,Neukölln,Neukölln
+    567 10781,Schöneberg,Tempelhof-Schöneberg
+    559 12687,Marzahn,Marzahn-Hellersdorf
+    553 10825,Schöneberg,Tempelhof-Schöneberg
+    552 10623,Charlottenburg,Charlottenburg-Wilmersdorf
+    542 12165,Steglitz,Steglitz-Zehlendorf
+    542 12165,Lichterfelde,Steglitz-Zehlendorf
+    540 10627,Charlottenburg,Charlottenburg-Wilmersdorf
+    532 10783,Schöneberg,Tempelhof-Schöneberg
+    518 10629,Charlottenburg,Charlottenburg-Wilmersdorf
+    473 10625,Charlottenburg,Charlottenburg-Wilmersdorf
+    471 10779,Wilmersdorf,Tempelhof-Schöneberg
+    471 10779,Schöneberg,Tempelhof-Schöneberg
+    453 10553,Moabit,Mitte
+    453 10553,Hansaviertel,Mitte
+    398 10787,Tiergarten,Mitte
+    398 10787,Schöneberg,Charlottenburg-Wilmersdorf
+    391 10823,Schöneberg,Tempelhof-Schöneberg
+    264 10789,Wilmersdorf,Charlottenburg-Wilmersdorf
+     49 14053,Westend,Charlottenburg-Wilmersdorf
+      9 15537,,
+      1 15569,,
+      1 15566,,

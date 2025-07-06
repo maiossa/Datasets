@@ -39,7 +39,19 @@ except ImportError:
 OUTPUT_FILE = 'interactive_price_heatmap_berlin_FIXED.html'
 DATA_PATH = 'data/processed/berlin_housing_combined_enriched_final.csv'
 GEOJSON_PATH = 'data/raw/lor_ortsteile.geojson'
-SAMPLE_SIZE = 1000  # Max Punkte pro Jahr für Performance
+
+# Performance-Einstellungen (über Kommandozeile änderbar)
+import sys
+if len(sys.argv) > 1:
+    try:
+        SAMPLE_SIZE = int(sys.argv[1])
+        print(f"📊 Benutzerdefinierte Sample-Größe: {SAMPLE_SIZE}")
+    except ValueError:
+        SAMPLE_SIZE = None  # Alle Datenpunkte
+        print("📊 Verwende ALLE Datenpunkte (kein Sampling)")
+else:
+    SAMPLE_SIZE = None  # Standard: Alle Datenpunkte
+    print("📊 Standard: Verwende ALLE Datenpunkte")
 
 # Bezirk-Koordinaten für Simulation
 DISTRICT_COORDS = {
@@ -282,6 +294,78 @@ def create_choropleth_layers(m, df):
     
     return m
 
+def create_yearly_choropleth_layers(m, df):
+    """Erstelle jahresbasierte Choropleth-Layer für echte Dynamik."""
+    if not GEOPANDAS_AVAILABLE or not os.path.exists(GEOJSON_PATH):
+        return m
+    
+    try:
+        print("  Erstelle jahresbasierte Choropleth-Layer...")
+        
+        # Lade GeoJSON
+        gdf = gpd.read_file(GEOJSON_PATH)
+        years = sorted(df['year'].unique())
+        
+        for year in years:
+            year_df = df[df['year'] == year]
+            
+            if 'ortsteil' in year_df.columns and len(year_df) > 0:
+                # Aggregiere für dieses Jahr
+                ortsteil_stats_year = year_df.groupby('ortsteil').agg({
+                    'price': ['mean', 'count'],
+                    'price_per_sqm': ['mean']
+                }).round(2)
+                ortsteil_stats_year.columns = ['price_mean', 'price_count', 'price_per_sqm_mean']
+                ortsteil_stats_year = ortsteil_stats_year.reset_index()
+                
+                # Merge mit GeoJSON
+                gdf_year = gdf.merge(ortsteil_stats_year, left_on='spatial_alias', right_on='ortsteil', how='left')
+                gdf_year['price_mean'] = gdf_year['price_mean'].fillna(0)
+                gdf_year['price_count'] = gdf_year['price_count'].fillna(0)
+                
+                print(f"    Jahr {year}: {(gdf_year['price_mean'] > 0).sum()} Ortsteile mit Daten")
+                
+                # Erstelle Choropleth für dieses Jahr
+                choropleth_year = folium.Choropleth(
+                    geo_data=gdf_year,
+                    name=f'📅 Preisentwicklung {year}',
+                    data=gdf_year,
+                    columns=['spatial_alias', 'price_mean'],
+                    key_on='feature.properties.spatial_alias',
+                    fill_color='YlOrRd',
+                    fill_opacity=0.7,
+                    line_opacity=0.2,
+                    legend_name=f'Durchschnittspreis {year} (€)',
+                    overlay=True,
+                    control=True,
+                    show=False  # Standardmäßig ausgeblendet
+                )
+                choropleth_year.add_to(m)
+                
+                # Erstelle Anzahl-Choropleth für dieses Jahr
+                choropleth_count_year = folium.Choropleth(
+                    geo_data=gdf_year,
+                    name=f'📊 Angebote {year}',
+                    data=gdf_year,
+                    columns=['spatial_alias', 'price_count'],
+                    key_on='feature.properties.spatial_alias',
+                    fill_color='BuPu',
+                    fill_opacity=0.7,
+                    line_opacity=0.2,
+                    legend_name=f'Anzahl Angebote {year}',
+                    overlay=True,
+                    control=True,
+                    show=False
+                )
+                choropleth_count_year.add_to(m)
+        
+        print("    ✅ Jahresbasierte Choropleth-Layer hinzugefügt")
+        
+    except Exception as e:
+        print(f"    ❌ Fehler bei jahresbasierten Choropleth: {e}")
+    
+    return m
+
 def create_interactive_map(df, price_quantiles):
     """Erstelle die interaktive Folium-Karte."""
     print("Erstelle interaktive Karte...")
@@ -292,6 +376,9 @@ def create_interactive_map(df, price_quantiles):
     # Füge Choropleth-Layer hinzu
     m = create_choropleth_layers(m, df)
     
+    # Füge jahresbasierte Choropleth-Layer hinzu
+    m = create_yearly_choropleth_layers(m, df)
+    
     # Erstelle Layer für jedes Jahr
     years = sorted(df['year'].unique())
     print(f"  Erstelle Marker-Layer für Jahre: {years}")
@@ -300,11 +387,13 @@ def create_interactive_map(df, price_quantiles):
         year_data = df[df['year'] == year]
         print(f"    Jahr {year}: {len(year_data)} Angebote")
         
-        # Erstelle Sample für Performance
-        if len(year_data) > SAMPLE_SIZE:
+        # Erstelle Sample für Performance (falls SAMPLE_SIZE gesetzt)
+        if SAMPLE_SIZE is not None and len(year_data) > SAMPLE_SIZE:
             year_data_sample = year_data.sample(n=SAMPLE_SIZE, random_state=42)
+            print(f"      Sample erstellt: {len(year_data_sample)} von {len(year_data)} Punkten")
         else:
             year_data_sample = year_data
+            print(f"      Alle Punkte verwendet: {len(year_data_sample)}")
         
         # Erstelle Marker-Cluster für dieses Jahr
         marker_cluster = MarkerCluster(
@@ -342,7 +431,7 @@ def create_legend(price_quantiles, df):
     
     legend_html = f'''
     <div style="position: fixed; 
-                top: 10px; right: 10px; width: 220px; height: auto; 
+                top: 10px; left: 10px; width: 220px; height: auto; 
                 background-color: white; border:2px solid grey; z-index:9999; 
                 font-size:12px; padding: 15px; border-radius: 5px; box-shadow: 0 0 15px rgba(0,0,0,0.2);">
     <h4 style="margin: 0 0 10px 0; color: #333;">🎯 Preiskategorien</h4>
@@ -369,9 +458,13 @@ def create_legend(price_quantiles, df):
     <hr style="margin: 10px 0;">
     <div style="font-size: 11px; color: #666; line-height: 1.4;">
         <strong>💡 Bedienung:</strong><br>
-        • Verwende <strong>Layer-Kontrolle</strong> (oben rechts) zum Wechseln zwischen Ansichten<br>
-        • <strong>Choropleth-Layer:</strong> Zeigen aggregierte Daten pro Ortsteil<br>
-        • <strong>Marker-Layer:</strong> Zeigen einzelne Angebote pro Jahr
+        • <strong>Layer-Kontrolle:</strong> Rechts oben zum Wechseln zwischen Ansichten<br>
+        • <strong>Gesamt-Choropleth:</strong> Alle Jahre kombiniert<br>
+        • <strong>Jahres-Choropleth:</strong> Dynamische Daten pro Jahr<br>
+        • <strong>Marker:</strong> Einzelne Angebote (mit Sampling wenn &gt;1000)<br>
+        <div style="margin-top: 5px; font-size: 10px; color: #999;">
+            Sample-Größe: {SAMPLE_SIZE if SAMPLE_SIZE else 'Alle Datenpunkte'}
+        </div>
     </div>
     </div>
     '''

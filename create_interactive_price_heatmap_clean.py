@@ -19,17 +19,31 @@ Features:
 
 import pandas as pd
 import folium
-from folium.plugins import MarkerCluster
+from folium.plugins import MarkerCluster, TimeSliderChoropleth
 import numpy as np
 import random
 import os
 from pathlib import Path
+import datetime
+
+# Versuche geopandas zu importieren
+try:
+    import geopandas as gpd
+    GEOPANDAS_AVAILABLE = True
+except ImportError:
+    print("⚠️  GeoPandas nicht verfügbar. Choropleth-Features werden deaktiviert.")
+    print("   Installiere mit: pip install geopandas")
+    GEOPANDAS_AVAILABLE = False
+
+import json
 
 # Konfiguration
 OUTPUT_FILE = 'interactive_price_heatmap_berlin.html'
 DATA_PATH = 'data/processed/berlin_housing_combined_enriched_final.csv'
+GEOJSON_PATH = 'data/raw/lor_ortsteile.geojson'
 SAMPLE_SIZE = 1000  # Max Punkte pro Jahr für Performance
 DEBUG_COORDS = False  # Setze auf True für Debug-Output der Koordinaten
+ENABLE_CHOROPLETH = True and GEOPANDAS_AVAILABLE  # Aktiviere Choropleth-Layer basierend auf Ortsteilen
 
 # Bezirk-Koordinaten für Simulation (komplette Berliner Bezirke)
 DISTRICT_COORDS = {
@@ -243,58 +257,349 @@ def create_tooltip(row):
     
     return tooltip_text
 
-def create_legend(price_quantiles):
-    """Erstelle HTML-Legende für Preiskategorien."""
+def create_legend(price_quantiles, df=None):
+    """Erstelle HTML-Legende für Preiskategorien und Zeitstrahl-Info."""
+    
+    # Basis-Legende für Preiskategorien
     legend_html = f'''
     <div style="position: fixed; 
-                top: 10px; right: 10px; width: 180px; height: 120px; 
+                top: 10px; right: 10px; width: 200px; height: auto; 
                 background-color: white; border:2px solid grey; z-index:9999; 
-                font-size:14px; padding: 10px">
-    <h4>Preiskategorien</h4>
-    <i class="fa fa-circle" style="color:green"></i> Guenstig (≤{price_quantiles[0]:.0f}€)<br>
-    <i class="fa fa-circle" style="color:lightgreen"></i> Guenstig-Mittel ({price_quantiles[0]:.0f}-{price_quantiles[1]:.0f}€)<br>
-    <i class="fa fa-circle" style="color:orange"></i> Mittel-Teuer ({price_quantiles[1]:.0f}-{price_quantiles[2]:.0f}€)<br>
-    <i class="fa fa-circle" style="color:red"></i> Teuer (>{price_quantiles[2]:.0f}€)<br>
+                font-size:12px; padding: 10px; border-radius: 5px;">
+    <h4 style="margin: 0 0 10px 0;">Preiskategorien</h4>
+    <div style="margin-bottom: 5px;">
+        <i class="fa fa-circle" style="color:green"></i> Guenstig (≤{price_quantiles[0]:.0f}€)
+    </div>
+    <div style="margin-bottom: 5px;">
+        <i class="fa fa-circle" style="color:lightgreen"></i> Guenstig-Mittel ({price_quantiles[0]:.0f}-{price_quantiles[1]:.0f}€)
+    </div>
+    <div style="margin-bottom: 5px;">
+        <i class="fa fa-circle" style="color:orange"></i> Mittel-Teuer ({price_quantiles[1]:.0f}-{price_quantiles[2]:.0f}€)
+    </div>
+    <div style="margin-bottom: 10px;">
+        <i class="fa fa-circle" style="color:red"></i> Teuer (>{price_quantiles[2]:.0f}€)
     </div>
     '''
+    
+    # Füge Zeitstrahl-Info hinzu falls verfügbar
+    if df is not None:
+        years = sorted(df['year'].unique())
+        total_offers = len(df)
+        
+        legend_html += f'''
+        <hr style="margin: 5px 0;">
+        <h4 style="margin: 5px 0;">Zeitstrahl-Daten</h4>
+        <div style="font-size: 11px;">
+            <div>📅 Jahre: {years[0]} - {years[-1]}</div>
+            <div>🏠 Gesamt: {total_offers:,} Angebote</div>
+        '''
+        
+        # Zeige Angebote pro Jahr
+        for year in years:
+            year_count = len(df[df['year'] == year])
+            legend_html += f'<div>  {year}: {year_count:,}</div>'
+        
+        legend_html += '</div>'
+    
+    legend_html += '''
+    <hr style="margin: 5px 0;">
+    <div style="font-size: 10px; color: #666;">
+        💡 Verwende Layer-Kontrolle (oben rechts) um verschiedene Ansichten zu wechseln
+    </div>
+    </div>
+    '''
+    
     return legend_html
 
-def create_interactive_map(df, price_quantiles):
+def load_geojson_data():
+    """Lade GeoJSON-Daten für Berlin Ortsteile."""
+    print("Lade GeoJSON-Daten...")
+    
+    if not GEOPANDAS_AVAILABLE:
+        print("❌ GeoPandas nicht verfügbar")
+        return None
+    
+    if not os.path.exists(GEOJSON_PATH):
+        print(f"❌ GeoJSON-Datei nicht gefunden: {GEOJSON_PATH}")
+        return None
+    
+    try:
+        gdf = gpd.read_file(GEOJSON_PATH)
+        print(f"✅ GeoJSON geladen: {len(gdf)} Ortsteile")
+        
+        # Zeige verfügbare Spalten
+        print(f"   Verfügbare Spalten: {list(gdf.columns)}")
+        
+        # Prüfe auf wichtige Spalten
+        if 'OTEIL' in gdf.columns:
+            print(f"   Beispiel-Ortsteile: {gdf['OTEIL'].head(5).tolist()}")
+        
+        return gdf
+        
+    except Exception as e:
+        print(f"❌ Fehler beim Laden der GeoJSON-Datei: {e}")
+        return None
+
+def aggregate_data_by_district(df, gdf=None):
+    """Aggregiere Daten pro Bezirk und Ortsteil für Choropleth."""
+    print("Aggregiere Daten für Choropleth...")
+    
+    # Aggregiere nach Bezirk
+    district_stats = df.groupby('district').agg({
+        'price': ['mean', 'median', 'count'],
+        'price_per_sqm': ['mean', 'median'],
+        'size': ['mean', 'median']
+    }).round(2)
+    
+    # Flatten column names
+    district_stats.columns = ['_'.join(col).strip() for col in district_stats.columns.values]
+    district_stats = district_stats.reset_index()
+    
+    print(f"   Bezirks-Statistiken erstellt: {len(district_stats)} Bezirke")
+    
+    # Aggregiere nach Ortsteil falls verfügbar
+    ortsteil_stats = None
+    if 'ortsteil' in df.columns:  # Korrigiert: 'ortsteil' statt 'ortsteil_neu'
+        ortsteil_stats = df.groupby('ortsteil').agg({
+            'price': ['mean', 'median', 'count'],
+            'price_per_sqm': ['mean', 'median'],
+            'size': ['mean', 'median']
+        }).round(2)
+        
+        # Flatten column names
+        ortsteil_stats.columns = ['_'.join(col).strip() for col in ortsteil_stats.columns.values]
+        ortsteil_stats = ortsteil_stats.reset_index()
+        
+        print(f"   Ortsteil-Statistiken erstellt: {len(ortsteil_stats)} Ortsteile")
+        print(f"   Beispiel-Ortsteile: {ortsteil_stats['ortsteil'].head(5).tolist()}")
+    else:
+        print("   ❌ Spalte 'ortsteil' nicht gefunden")
+    
+    return district_stats, ortsteil_stats
+
+def create_choropleth_layer(m, gdf, ortsteil_stats):
+    """Erstelle Choropleth-Layer basierend auf Ortsteilen."""
+    print("Erstelle Choropleth-Layer...")
+    
+    if gdf is None:
+        print("   Überspringe Choropleth - keine GeoJSON-Daten verfügbar")
+        return m
+    
+    # Prüfe verfügbare Spalten in GeoJSON
+    print(f"   GeoJSON Spalten: {list(gdf.columns)}")
+    
+    # Verwende die richtige Spalte für Ortsteile (OTEIL basierend auf der Analyse)
+    ortsteil_col = 'OTEIL'
+    
+    if ortsteil_col not in gdf.columns:
+        print(f"   ❌ Spalte '{ortsteil_col}' nicht in GeoJSON gefunden")
+        return m
+    
+    print(f"   Verwende Ortsteil-Spalte: {ortsteil_col}")
+    
+    # Wenn wir Ortsteil-Statistiken haben, merge sie
+    if ortsteil_stats is not None:
+        # Merge mit Statistiken - verwende spatial_alias als Match
+        gdf_merged = gdf.merge(
+            ortsteil_stats, 
+            left_on='spatial_alias',  # spatial_alias ist der lesbare Name
+            right_on='ortsteil',      # Korrigiert: 'ortsteil' statt 'ortsteil_neu'
+            how='left'
+        )
+        
+        # Fülle NaN-Werte mit 0
+        for col in ['price_mean', 'price_count', 'price_per_sqm_mean']:
+            if col in gdf_merged.columns:
+                gdf_merged[col] = gdf_merged[col].fillna(0)
+        
+        print(f"   Merge erfolgreich: {len(gdf_merged)} Ortsteile")
+        
+        # Erstelle Choropleth für Durchschnittspreis
+        if 'price_mean' in gdf_merged.columns:
+            choropleth_price = folium.Choropleth(
+                geo_data=gdf_merged.__geo_interface__,
+                name='💰 Durchschnittspreis pro Ortsteil',
+                data=gdf_merged,
+                columns=['spatial_alias', 'price_mean'],
+                key_on='feature.properties.spatial_alias',
+                fill_color='YlOrRd',
+                fill_opacity=0.7,
+                line_opacity=0.2,
+                legend_name='Durchschnittspreis (€)',
+                overlay=True,
+                control=True,
+                show=False
+            )
+            choropleth_price.add_to(m)
+        
+        # Erstelle Choropleth für Anzahl Angebote
+        if 'price_count' in gdf_merged.columns:
+            choropleth_count = folium.Choropleth(
+                geo_data=gdf_merged.__geo_interface__,
+                name='📊 Anzahl Angebote pro Ortsteil',
+                data=gdf_merged,
+                columns=['spatial_alias', 'price_count'],
+                key_on='feature.properties.spatial_alias',
+                fill_color='BuPu',
+                fill_opacity=0.7,
+                line_opacity=0.2,
+                legend_name='Anzahl Angebote',
+                overlay=True,
+                control=True,
+                show=False
+            )
+            choropleth_count.add_to(m)
+        
+        # Verwende gdf_merged für Tooltips
+        gdf_for_tooltips = gdf_merged
+    else:
+        # Ohne Statistiken, nur Grenzen zeigen
+        gdf_for_tooltips = gdf
+        print("   Keine Ortsteil-Statistiken verfügbar - zeige nur Grenzen")
+    
+    # Füge GeoJSON-Layer mit Tooltips hinzu
+    tooltip_fields = ['spatial_alias', 'BEZIRK']
+    tooltip_aliases = ['Ortsteil:', 'Bezirk:']
+    
+    # Füge Statistik-Felder hinzu falls verfügbar
+    if ortsteil_stats is not None:
+        for field, alias in [('price_mean', 'Ø Preis (€):'), ('price_count', 'Anzahl Angebote:'), ('price_per_sqm_mean', 'Ø €/m²:')]:
+            if field in gdf_for_tooltips.columns:
+                tooltip_fields.append(field)
+                tooltip_aliases.append(alias)
+    
+    geojson_layer = folium.GeoJson(
+        gdf_for_tooltips,
+        name='🗺️ Ortsteil-Grenzen',
+        style_function=lambda x: {
+            'fillColor': 'transparent',
+            'color': 'black',
+            'weight': 2,
+            'fillOpacity': 0
+        },
+        tooltip=folium.GeoJsonTooltip(
+            fields=tooltip_fields,
+            aliases=tooltip_aliases,
+            style=("background-color: white; color: #333333; font-family: arial; font-size: 12px; padding: 10px;")
+        ),
+        overlay=True,
+        control=True,
+        show=True  # Zeige Grenzen standardmäßig
+    )
+    geojson_layer.add_to(m)
+    
+    print("   ✅ Choropleth-Layer hinzugefügt")
+    return m
+
+def create_time_slider_data(df, gdf, ortsteil_stats_by_year):
+    """Erstelle Daten für den Zeitstrahl-Slider."""
+    print("Erstelle Zeitstrahl-Daten...")
+    
+    if gdf is None or ortsteil_stats_by_year is None:
+        return None
+    
+    # Erstelle Zeitstrahl-Daten für jeden Ortsteil und jedes Jahr
+    time_data = []
+    years = sorted(df['year'].unique())
+    
+    for year in years:
+        year_stats = ortsteil_stats_by_year.get(year, pd.DataFrame())
+        
+        if not year_stats.empty:
+            # Merge mit GeoJSON
+            gdf_year = gdf.merge(
+                year_stats,
+                left_on='spatial_alias',
+                right_on='ortsteil_neu',
+                how='left'
+            )
+            
+            # Fülle NaN-Werte
+            gdf_year['price_mean'] = gdf_year['price_mean'].fillna(0)
+            
+            # Erstelle Datum für TimeSlider
+            timestamp = datetime.datetime(year, 1, 1).strftime('%Y-%m-%d')
+            
+            time_data.append({
+                'timestamp': timestamp,
+                'geodata': gdf_year,
+                'data': gdf_year[['spatial_alias', 'price_mean']].copy()
+            })
+    
+    return time_data
+
+def aggregate_data_by_year_and_district(df, gdf=None):
+    """Aggregiere Daten pro Jahr, Bezirk und Ortsteil."""
+    print("Aggregiere Daten pro Jahr für Zeitstrahl...")
+    
+    # Aggregiere nach Jahr und Bezirk
+    district_stats_by_year = {}
+    ortsteil_stats_by_year = {}
+    
+    years = sorted(df['year'].unique())
+    
+    for year in years:
+        year_df = df[df['year'] == year]
+        
+        # Bezirks-Statistiken
+        district_stats = year_df.groupby('district').agg({
+            'price': ['mean', 'median', 'count'],
+            'price_per_sqm': ['mean', 'median'],
+            'size': ['mean', 'median']
+        }).round(2)
+        
+        district_stats.columns = ['_'.join(col).strip() for col in district_stats.columns.values]
+        district_stats = district_stats.reset_index()
+        district_stats_by_year[year] = district_stats
+        
+        # Ortsteil-Statistiken (falls verfügbar)
+        if 'ortsteil' in year_df.columns:  # Korrigiert: 'ortsteil' statt 'ortsteil_neu'
+            ortsteil_stats = year_df.groupby('ortsteil').agg({
+                'price': ['mean', 'median', 'count'],
+                'price_per_sqm': ['mean', 'median'],
+                'size': ['mean', 'median']
+            }).round(2)
+            
+            ortsteil_stats.columns = ['_'.join(col).strip() for col in ortsteil_stats.columns.values]
+            ortsteil_stats = ortsteil_stats.reset_index()
+            ortsteil_stats_by_year[year] = ortsteil_stats
+    
+    print(f"   Daten für {len(years)} Jahre aggregiert")
+    return district_stats_by_year, ortsteil_stats_by_year
+
+def create_interactive_map(df, price_quantiles, gdf=None, ortsteil_stats=None, ortsteil_stats_by_year=None):
     """Erstelle die interaktive Folium-Karte."""
     print("Erstelle interaktive Karte...")
     
-    # Erstelle Basis-Karte mit explizit hellem Standard-Stil
+    # Erstelle Basis-Karte OHNE automatische Tiles
     m = folium.Map(
         location=[52.52, 13.405], 
         zoom_start=11,
-        tiles=None  # Keine automatischen Tiles
+        tiles=None
     )
     
-    # Füge Tile-Layer manuell hinzu in der gewünschten Reihenfolge
-    # Standard-Layer (wird als erstes und als Standard verwendet)
-    folium.TileLayer(
+    # Füge Basis-Tile-Layer manuell hinzu
+    base_layer = folium.TileLayer(
         tiles='CartoDB positron',
-        name='CartoDB Positron (Standard)',
+        name='Helle Karte',
         overlay=False,
-        control=True,
-        show=True  # Explizit als Standard anzeigen
-    ).add_to(m)
+        control=True
+    )
+    base_layer.add_to(m)
     
-    # Alternative Layers
+    # Füge alternative Tile-Layer hinzu
     folium.TileLayer(
         tiles='OpenStreetMap',
         name='OpenStreetMap',
         overlay=False,
-        control=True,
-        show=False
+        control=True
     ).add_to(m)
     
     folium.TileLayer(
         tiles='CartoDB dark_matter',
-        name='CartoDB Dark',
+        name='Dunkle Karte',
         overlay=False,
-        control=True,
-        show=False
+        control=True
     ).add_to(m)
     
     # Erstelle Layer für jedes Jahr
@@ -307,11 +612,12 @@ def create_interactive_map(df, price_quantiles):
         
         # Erstelle Marker-Cluster für dieses Jahr
         marker_cluster = MarkerCluster(
-            name=f'Angebote {year} ({len(year_data)} Stück)',
+            name=f'📍 Angebote {year} ({len(year_data)} Stück)',
             overlay=True,
             control=True,
             show=True if year == years[-1] else False  # Nur letztes Jahr standardmäßig anzeigen
-        ).add_to(m)
+        )
+        marker_cluster.add_to(m)
         
         # Erstelle Sample für bessere Performance
         if len(year_data) > SAMPLE_SIZE:
@@ -343,23 +649,77 @@ def create_interactive_map(df, price_quantiles):
                 tooltip=f"{row['price']:.0f}€ | {row['district']}"
             ).add_to(marker_cluster)
     
+    # Füge Choropleth-Layer hinzu wenn verfügbar
+    if ENABLE_CHOROPLETH and gdf is not None and ortsteil_stats is not None:
+        m = create_choropleth_layer(m, gdf, ortsteil_stats)
+    
+    # Füge Zeitstrahl-Funktionalität hinzu
+    if ENABLE_CHOROPLETH and gdf is not None and ortsteil_stats_by_year is not None:
+        print("  Füge Zeitstrahl-Funktionalität hinzu...")
+        
+        # Erstelle Zeitstrahl-Daten
+        time_data = create_time_slider_data(df, gdf, ortsteil_stats_by_year)
+        
+        if time_data:
+            # Implementiere einen vereinfachten Zeitstrahl mit separaten Choropleth-Layern pro Jahr
+            years = sorted(df['year'].unique())
+            
+            for year in years:
+                if year in ortsteil_stats_by_year:
+                    year_stats = ortsteil_stats_by_year[year]
+                    
+                    # Merge mit GeoJSON
+                    gdf_year = gdf.merge(
+                        year_stats,
+                        left_on='spatial_alias',
+                        right_on='ortsteil',  # Korrigiert: 'ortsteil' statt 'ortsteil_neu'
+                        how='left'
+                    )
+                    
+                    # Fülle NaN-Werte
+                    gdf_year['price_mean'] = gdf_year['price_mean'].fillna(0)
+                    
+                    # Erstelle Choropleth für dieses Jahr
+                    choropleth_year = folium.Choropleth(
+                        geo_data=gdf_year.__geo_interface__,
+                        name=f'📅 Preisentwicklung {year}',
+                        data=gdf_year,
+                        columns=['spatial_alias', 'price_mean'],
+                        key_on='feature.properties.spatial_alias',
+                        fill_color='YlOrRd',
+                        fill_opacity=0.7,
+                        line_opacity=0.2,
+                        legend_name=f'Durchschnittspreis {year} (€)',
+                        overlay=True,
+                        control=True,
+                        show=False  # Standardmäßig ausgeblendet
+                    )
+                    choropleth_year.add_to(m)
+    
     return m
 
-def save_map(m, price_quantiles, output_path):
+def save_map(m, price_quantiles, df, output_path):
     """Speichere Karte mit Legende."""
     print("Speichere Karte...")
     
-    # Füge Legende hinzu
-    legend_html = create_legend(price_quantiles)
-    m.get_root().html.add_child(folium.Element(legend_html))
+    # Füge Layer-Kontrolle hinzu - WICHTIG: Vor der Legende!
+    layer_control = folium.LayerControl(
+        position='topright',
+        collapsed=False,  # Zeige Layer-Kontrolle geöffnet
+        autoZIndex=True
+    )
+    layer_control.add_to(m)
     
-    # Füge Layer-Kontrolle hinzu
-    folium.LayerControl().add_to(m)
+    # Füge Legende hinzu
+    legend_html = create_legend(price_quantiles, df)
+    m.get_root().html.add_child(folium.Element(legend_html))
     
     # Speichere die Karte
     m.save(output_path)
     
-    print(f"Karte gespeichert: {output_path}")
+    print(f"✅ Karte gespeichert: {output_path}")
+    print(f"📋 Layer-Kontrolle: Oben rechts (sollte sichtbar sein)")
+    print(f"🎛️  Verwende die Layer-Kontrolle zum Wechseln zwischen Ansichten")
 
 def main():
     """Hauptfunktion."""
@@ -377,14 +737,28 @@ def main():
         if df is None:
             return
         
+        # Lade GeoJSON-Daten für Ortsteile
+        gdf = None
+        ortsteil_stats = None
+        ortsteil_stats_by_year = None
+        
+        if ENABLE_CHOROPLETH:
+            gdf = load_geojson_data()
+            if gdf is not None:
+                # Aggregiere Daten für Choropleth (alle Jahre zusammen)
+                district_stats, ortsteil_stats = aggregate_data_by_district(df, gdf)
+                
+                # Aggregiere Daten pro Jahr für Zeitstrahl
+                district_stats_by_year, ortsteil_stats_by_year = aggregate_data_by_year_and_district(df, gdf)
+        
         # Berechne Preiskategorien
         df, price_quantiles = calculate_price_categories(df)
         
         # Erstelle interaktive Karte
-        m = create_interactive_map(df, price_quantiles)
+        m = create_interactive_map(df, price_quantiles, gdf, ortsteil_stats, ortsteil_stats_by_year)
         
         # Speichere Karte
-        save_map(m, price_quantiles, OUTPUT_FILE)
+        save_map(m, price_quantiles, df, OUTPUT_FILE)
         
         print(f"\nFEATURES DER GENERIERTEN KARTE:")
         print(f"  - Preis-Farbkodierung (4 Kategorien)")
@@ -394,6 +768,10 @@ def main():
         print(f"  - Interaktive Legende und Layer-Kontrolle")
         print(f"  - Clustering für bessere Performance")
         print(f"  - Mehrere Kartenstile zur Auswahl")
+        if ENABLE_CHOROPLETH and gdf is not None:
+            print(f"  - Choropleth-Layer mit Ortsteils-Grenzen")
+            print(f"  - Aggregierte Statistiken pro Ortsteil")
+            print(f"  - Mehrere Choropleth-Visualisierungen (Preis, Anzahl, €/m²)")
         
         print(f"\nERFOLGREICH ABGESCHLOSSEN!")
         print(f"Oeffne '{OUTPUT_FILE}' in deinem Browser.")

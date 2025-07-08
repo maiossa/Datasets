@@ -12,37 +12,75 @@ Umfassende Analyse der Mietpreisentwicklung in Berlin basierend auf drei Datens�
 ## Projektstruktur
 ```
 Berlin_Housing_Market_Analysis/
-├── 01_Data_Preprocessing.ipynb          # Datenbereinigung und PLZ-Mapping
-├── 02_Housing_Market_Analysis.ipynb     # Hauptanalyse und Visualisierung
-├── Presentation.md                      # Präsentationsmaterial
-├── Plan.md                             # Entwicklungsplan
-├── README.md                           # Projektdokumentation
+├── 01_Clean_Dataset_2018_2019.ipynb           # Datenbereinigung Dataset 2018-2019
+├── 02_Clean_Dataset_2022.ipynb                # Datenbereinigung Dataset 2022
+├── 03_Clean_Dataset_2025.ipynb                # Datenbereinigung Dataset 2025
+├── 04_Combine_Datasets.ipynb                  # Datenzusammenführung
+├── 05_Housing_Market_Analysis.ipynb           # Hauptanalyse und Visualisierung
+├── 06_Berlin_Housing_Market_Prediction.ipynb  # Vorhersagemodelle
+├── check_datasets.py                          # Datenvalidierung
+├── create_enhanced_plz_mapping_with_coords.py # PLZ-Mapping mit Koordinaten
+├── create_interactive_price_heatmap_clean.py  # Heatmap-Generierung (Clean)
+├── create_interactive_price_heatmap_FIXED.py  # Heatmap-Generierung (Fixed)
+├── interactive_price_heatmap_berlin_FIXED.html# Interaktive Preisheatmap
+├── Datasets_Info.md                           # Datensatz-Dokumentation
+├── README.md                                   # Projektdokumentation
 ├── data/
-│   ├── raw/                           # Originaldaten
+│   ├── raw/                                   # Originaldaten
 │   │   ├── Dataset_2018_2019.csv
 │   │   ├── Dataset_2022.csv
-│   │   └── Dataset_2025.csv
-│   └── processed/                     # Bereinigte Daten
-│       └── berlin_plz_mapping.csv
-└── assets/                            # Archivierte Dateien
-    ├── Berlin_Housing_Market_Cleaned.csv
-    ├── Berlin_Housing_Summary.csv
-    └── Berlin_Top_Districts.csv
+│   │   ├── Dataset_2025.csv
+│   │   ├── lor_ortsteile.geojson             # Berliner Ortsteile (GeoJSON)
+│   │   └── wohnlagen_enriched.csv            # Wohnlagen-Daten ursprünglich von berlin.de
+│   └── processed/                             # Bereinigte und verarbeitete Daten
+│       ├── berlin_housing_combined_final.csv
+│       ├── berlin_housing_combined_enriched_final.csv
+│       ├── berlin_plz_mapping.csv
+│       ├── berlin_plz_mapping_detailed.csv
+│       ├── berlin_plz_mapping_enhanced.csv
+│       ├── dataset_2018_2019_enriched.csv
+│       ├── dataset_2018_2019_normalized.csv
+│       ├── dataset_2022_enriched.csv
+│       ├── dataset_2022_normalized.csv
+│       ├── dataset_2025_enriched.csv
+│       └── dataset_2025_normalized.csv
 ```
 
 ## Datensätze
 1. **Dataset_2018_2019.csv** (10.406 Einträge): Kaggle-Datensatz von Immobilienscout24
+https://www.kaggle.com/datasets/corrieaar/apartment-rental-offers-in-germany
 2. **Dataset_2022.csv** (2.950 Einträge): Springer-Artikel Daten von Immowelt/Immonet
-3. **Dataset_2025.csv** (6.109 Einträge): Eigenes Webscraping von Immobilienscout24
+https://link.springer.com/article/10.1007/s11943-024-00340-6
+3. **Dataset_2025.csv** (6.109 Einträge): Eigenes Webscraping von Immobilienscout24 (vom 20.06.2025)
 
 **Gesamt: 19.465 Datenpunkte**
 
 ## Hauptdateien
-- `01_Data_Preprocessing.ipynb`: PLZ-Mapping und Datenbereinigung
-- `02_Housing_Market_Analysis.ipynb`: Hauptanalyse (geplant)
-- `data/processed/berlin_plz_mapping.csv`: Vollständige PLZ-zu-Bezirk-Zuordnung
-- `Plan.md`: Detaillierter Entwicklungsplan
-- `Presentation.md`: Präsentationsmaterial
+
+### Datenbereinigung und Preprocessing
+- `01_Clean_Dataset_2018_2019.ipynb`: Bereinigung des 2018-2019 Datensatzes
+- `02_Clean_Dataset_2022.ipynb`: Bereinigung des 2022 Datensatzes
+- `03_Clean_Dataset_2025.ipynb`: Bereinigung des 2025 Datensatzes
+- `04_Combine_Datasets.ipynb`: Zusammenführung aller Datensätze
+
+### Analyse und Visualisierung
+- `05_Housing_Market_Analysis.ipynb`: Hauptanalyse mit statistischen Tests und Visualisierungen
+- `06_Berlin_Housing_Market_Prediction.ipynb`: Machine Learning Vorhersagemodelle
+- `interactive_price_heatmap_berlin_FIXED.html`: Interaktive Preisheatmap von Berlin
+
+### Utility Scripts
+- `check_datasets.py`: Validierung und Überprüfung der Datensätze
+- `create_enhanced_plz_mapping_with_coords.py`: Erstellung erweiterter PLZ-Mappings
+- `create_interactive_price_heatmap_clean.py`: Generierung interaktiver Heatmaps
+
+### Dokumentation
+- `Datasets_Info.md`: Detaillierte Beschreibung aller Datensätze
+- `README.md`: Projektübersicht und Anleitung
+
+### Verarbeitete Daten
+- `berlin_housing_combined_final.csv`: Zusammengeführter Gesamtdatensatz
+- `berlin_housing_combined_enriched_final.csv`: Angereichterter Gesamtdatensatz
+- `berlin_plz_mapping_enhanced.csv`: Erweiterte PLZ-zu-Bezirk-Zuordnung mit Koordinaten
 
 ## Technische Lösung: PLZ-Mapping
 **Problem**: Dataset 2022 enthält nur Postleitzahlen, keine Bezirksnamen
@@ -50,43 +88,52 @@ Berlin_Housing_Market_Analysis/
 **Ergebnis**: 96.2% PLZ-Abdeckung, 98.2% Datenzuordnung erfolgreich
 
 ## Verwendete Technologien
-- **Python**: Pandas, NumPy, Matplotlib, Seaborn, Plotly
-- **Machine Learning**: Scikit-learn (geplant)
-- **Statistik**: SciPy für statistische Tests (geplant)
-- **Visualisierung**: Matplotlib, Seaborn, Plotly
-
-## Entwicklungsstand
-### ✅ Phase 1: Datenpreprocessing (ABGESCHLOSSEN)
-- [x] PLZ-zu-Bezirk-Mapping-Tabelle erstellt
-- [x] Datenbereinigung und Normalisierung
-- [x] Projektstruktur organisiert
-- [x] Dokumentation erstellt
-
-### 🔄 Phase 2: Hauptanalyse (AKTUELL)
-- [ ] Explorative Datenanalyse
-- [ ] Zeitreihenanalyse
-- [ ] Bezirksvergleiche
-- [ ] Statistische Tests
-
-### 📋 Phase 3: Machine Learning (GEPLANT)
-- [ ] Preisvorhersagemodelle
-- [ ] Feature Importance Analysis
-- [ ] Model-Evaluierung
+- **Python**: Pandas, NumPy, Matplotlib, Seaborn, Plotly, Folium
+- **Machine Learning**: Scikit-learn für Vorhersagemodelle
+- **Statistik**: SciPy für statistische Tests und Analysen
+- **Visualisierung**: Matplotlib, Seaborn, Plotly für statische und interaktive Plots
+- **Geospatiale Analyse**: GeoPandas, Folium für Karten und räumliche Visualisierungen
+- **Web-Technologien**: HTML für interaktive Dashboards
 
 ## Ausführung
-1. Klonen Sie das Repository
-2. Installieren Sie erforderliche Bibliotheken: `pip install pandas numpy matplotlib seaborn plotly scikit-learn`
-3. Führen Sie `01_Data_Preprocessing.ipynb` aus (bereits abgeschlossen)
-4. Führen Sie `02_Housing_Market_Analysis.ipynb` aus (in Entwicklung)
 
-## Bewertungskriterien
-Das Projekt erfüllt alle Bewertungskriterien:
-- **Business Questions (20%)**: Klar definierte Fragestellungen ✅
-- **Datenqualität (20%)**: Umfassende Bereinigung und PLZ-Mapping ✅
-- **EDA & Visualisierung (20%)**: Vielfältige Analysen geplant ✅
-- **Statistik & ML (20%)**: Tests und Vorhersagemodelle geplant ✅
-- **Code-Qualität (10%)**: Gut dokumentierter, modularer Code ✅
-- **Präsentation (10%)**: Strukturierte Dokumentation ✅
+### Voraussetzungen
+Installieren Sie die erforderlichen Python-Bibliotheken:
+```bash
+pip install pandas numpy matplotlib seaborn plotly scikit-learn geopandas folium scipy
+```
 
-## Autor
-Erstellt für die Analyse des Berliner Wohnungsmarktes (Juli 2025)
+### Schritt-für-Schritt Anleitung
+1. **Datenbereinigung**: 
+   - Führen Sie die Notebooks `01_Clean_Dataset_2018_2019.ipynb`, `02_Clean_Dataset_2022.ipynb`, und `03_Clean_Dataset_2025.ipynb` aus
+   
+2. **Datenzusammenführung**: 
+   - Führen Sie `04_Combine_Datasets.ipynb` aus, um alle Datensätze zu kombinieren
+   
+3. **Hauptanalyse**: 
+   - Führen Sie `05_Housing_Market_Analysis.ipynb` für umfassende Marktanalyse aus
+   
+4. **Vorhersagemodelle**: 
+   - Führen Sie `06_Berlin_Housing_Market_Prediction.ipynb` für ML-basierte Prognosen aus
+   
+5. **Interaktive Visualisierung**: 
+   - Öffnen Sie `interactive_price_heatmap_berlin_FIXED.html` im Browser für interaktive Karten
+
+### Datenvalidierung
+Nutzen Sie `check_datasets.py` zur Überprüfung der Datenqualität und Konsistenz.
+
+## Projektstatus
+✅ **Abgeschlossen**: Datenbereinigung aller drei Datensätze  
+✅ **Abgeschlossen**: PLZ-zu-Bezirk-Mapping mit 98.2% Erfolgsrate  
+✅ **Abgeschlossen**: Datenzusammenführung und Enrichment  
+✅ **Abgeschlossen**: Umfassende Marktanalyse mit statistischen Tests  
+✅ **Abgeschlossen**: Machine Learning Vorhersagemodelle  
+✅ **Abgeschlossen**: Interaktive Preisheatmap  
+
+## Ergebnisse
+Das Projekt liefert detaillierte Einblicke in:
+- Mietpreisentwicklung von 2018-2025 in Berlin
+- Bezirksspezifische Preisunterschiede und Trends
+- Vorhersagen für zukünftige Mietpreisentwicklungen
+- Interaktive Visualisierungen für bessere Datenexploration
+

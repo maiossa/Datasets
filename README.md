@@ -18,10 +18,8 @@ Berlin_Housing_Market_Analysis/
 ├── 04_Combine_Datasets.ipynb                  # Datenzusammenführung
 ├── 05_Housing_Market_Analysis.ipynb           # Hauptanalyse und Visualisierung
 ├── 06_Berlin_Housing_Market_Prediction.ipynb  # Vorhersagemodelle
-├── check_datasets.py                          # Datenvalidierung
 ├── create_enhanced_plz_mapping_with_coords.py # PLZ-Mapping mit Koordinaten
-├── create_interactive_price_heatmap_clean.py  # Heatmap-Generierung (Clean)
-├── create_interactive_price_heatmap_FIXED.py  # Heatmap-Generierung (Fixed)
+├── create_interactive_price_heatmap_FIXED.py  # Heatmap-Generierung (Aktuelle Version)
 ├── interactive_price_heatmap_berlin_FIXED.html# Interaktive Preisheatmap
 ├── Datasets_Info.md                           # Datensatz-Dokumentation
 ├── README.md                                   # Projektdokumentation
@@ -69,9 +67,12 @@ https://link.springer.com/article/10.1007/s11943-024-00340-6
 - `interactive_price_heatmap_berlin_FIXED.html`: Interaktive Preisheatmap von Berlin
 
 ### Utility Scripts
-- `check_datasets.py`: Validierung und Überprüfung der Datensätze
 - `create_enhanced_plz_mapping_with_coords.py`: Erstellung erweiterter PLZ-Mappings
-- `create_interactive_price_heatmap_clean.py`: Generierung interaktiver Heatmaps
+- `create_interactive_price_heatmap_FIXED.py`: Generierung interaktiver Heatmaps
+
+### Deprecated Files (können entfernt werden)
+- `check_datasets.py`: Validierung und Überprüfung der Datensätze (nicht mehr benötigt)
+- `create_interactive_price_heatmap_clean.py`: Frühere Version der Heatmap-Generierung
 
 ### Dokumentation
 - `Datasets_Info.md`: Detaillierte Beschreibung aller Datensätze
@@ -118,9 +119,15 @@ pip install pandas numpy matplotlib seaborn plotly scikit-learn geopandas folium
    
 5. **Interaktive Visualisierung**: 
    - Öffnen Sie `interactive_price_heatmap_berlin_FIXED.html` im Browser für interaktive Karten
+   - Oder führen Sie `create_interactive_price_heatmap_FIXED.py` aus, um die Heatmap neu zu generieren
 
-### Datenvalidierung
-Nutzen Sie `check_datasets.py` zur Überprüfung der Datenqualität und Konsistenz.
+### Optional: Aufräumen veralteter Dateien
+Entfernen Sie nicht mehr benötigte Dateien:
+```bash
+# Diese Dateien können sicher gelöscht werden
+rm check_datasets.py
+rm create_interactive_price_heatmap_clean.py
+```
 
 ## Projektstatus
 ✅ **Abgeschlossen**: Datenbereinigung aller drei Datensätze  

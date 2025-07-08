@@ -21,7 +21,6 @@ Berlin_Housing_Market_Analysis/
 ├── create_enhanced_plz_mapping_with_coords.py # PLZ-Mapping mit Koordinaten
 ├── create_interactive_price_heatmap_FIXED.py  # Heatmap-Generierung (Aktuelle Version)
 ├── interactive_price_heatmap_berlin_FIXED.html# Interaktive Preisheatmap
-├── Datasets_Info.md                           # Datensatz-Dokumentation
 ├── README.md                                   # Projektdokumentation
 ├── data/
 │   ├── raw/                                   # Originaldaten
@@ -70,12 +69,7 @@ https://link.springer.com/article/10.1007/s11943-024-00340-6
 - `create_enhanced_plz_mapping_with_coords.py`: Erstellung erweiterter PLZ-Mappings
 - `create_interactive_price_heatmap_FIXED.py`: Generierung interaktiver Heatmaps
 
-### Deprecated Files (können entfernt werden)
-- `check_datasets.py`: Validierung und Überprüfung der Datensätze (nicht mehr benötigt)
-- `create_interactive_price_heatmap_clean.py`: Frühere Version der Heatmap-Generierung
-
 ### Dokumentation
-- `Datasets_Info.md`: Detaillierte Beschreibung aller Datensätze
 - `README.md`: Projektübersicht und Anleitung
 
 ### Verarbeitete Daten
